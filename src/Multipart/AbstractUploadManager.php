@@ -152,6 +152,7 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
     private function buildFailureCatch()
     {
         if (interface_exists("Throwable")) {
+            // phpcs:ignore PHPCompatibility.Interfaces.NewInterfaces.throwableFound -- False positive: Because we use interface_exists, this will never fail even though the interface does not exist in php <= 5.6
             return function (\Throwable $e) {
                 return $this->transformException($e);
             };

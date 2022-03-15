@@ -71,6 +71,16 @@ jobs:
         composer require --dev phpstan/phpstan "0.12.45"
         vendor/bin/phpstan analyse src
 
+    #static compatibility-check for all versions
+    #Only needs to be run on 1 php-version to check for all versions
+    - if: ${{ matrix.php-versions == '8.0' && matrix.composer-options == ''}}
+      name: PHP-Compatibility
+      run: |
+        composer require --dev squizlabs/php_codesniffer "^3.0"
+        composer require --dev phpcompatibility/php-compatibility "^9.3"
+        vendor/bin/phpcs --config-set installed_paths vendor/phpcompatibility/php-compatibility
+        vendor/bin/phpcs --standard=PHPCompatibility --runtime-set testVersion 5.5-8.1 --warning-severity=0 src/
+
     #generate package
     - if:  ${{ matrix.composer-options == '' }}
       name: Package generation

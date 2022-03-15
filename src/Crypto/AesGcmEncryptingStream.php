@@ -97,6 +97,7 @@ class AesGcmEncryptingStream implements AesStreamInterface, AesStreamInterfaceV2
                 $this->keySize
             ));
         } else {
+            // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctionParameters -- False positive, never used in php <= 7.0
             return Psr7\Utils::streamFor(\openssl_encrypt(
                 (string)$this->plaintext,
                 $this->getOpenSslName(),

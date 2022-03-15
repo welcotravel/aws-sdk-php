@@ -29,6 +29,7 @@ class ByteArray extends \SplFixedArray
         } elseif (\is_string($size)) {
             // We need to avoid mbstring.func_overload
             if (\is_callable('\\mb_str_split')) {
+                // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.mb_str_splitFound -- False positive: code is inside test if it exists
                 $tmp = \mb_str_split($size, 1, '8bit');
             } else {
                 $tmp = \str_split($size, 1);

@@ -83,6 +83,7 @@ class AesGcmDecryptingStream implements AesStreamInterface
                 $this->keySize
             ));
         } else {
+            // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctionParameters -- False positive, never used in php <= 7.0
             $result = \openssl_decrypt(
                 (string)$this->cipherText,
                 $this->getOpenSslName(),
