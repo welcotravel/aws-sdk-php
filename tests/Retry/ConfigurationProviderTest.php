@@ -6,6 +6,7 @@ use Aws\Retry\Configuration;
 use Aws\Retry\ConfigurationInterface;
 use Aws\Retry\ConfigurationProvider;
 use Aws\Retry\Exception\ConfigurationException;
+use Aws\Test\Polyfill\PHPUnit\PHPUnitCompatTrait;
 use GuzzleHttp\Promise;
 use PHPUnit\Framework\TestCase;
 
@@ -14,6 +15,8 @@ use PHPUnit\Framework\TestCase;
  */
 class ConfigurationProviderTest extends TestCase
 {
+    use PHPUnitCompatTrait;
+
     private static $originalEnv;
 
     private $iniFile = <<<EOT
@@ -34,13 +37,14 @@ max_attempts = 20
 retry_mode = adaptive
 EOT;
 
-    public static function setUpBeforeClass()
+    public static function _setUpBeforeClass()
     {
         self::$originalEnv = [
             'max_attempts' => getenv(ConfigurationProvider::ENV_MAX_ATTEMPTS) ?: '',
             'mode' => getenv(ConfigurationProvider::ENV_MODE) ?: '',
             'home' => getenv('HOME') ?: '',
             'profile' => getenv(ConfigurationProvider::ENV_PROFILE) ?: '',
+            'config_file' => getenv(ConfigurationProvider::ENV_CONFIG_FILE) ?: '',
         ];
     }
 
@@ -49,6 +53,7 @@ EOT;
         putenv(ConfigurationProvider::ENV_MODE . '=');
         putenv(ConfigurationProvider::ENV_MAX_ATTEMPTS . '=');
         putenv(ConfigurationProvider::ENV_CONFIG_FILE . '=');
+        putenv(ConfigurationProvider::ENV_PROFILE . '=');
 
         $dir = sys_get_temp_dir() . '/.aws';
 
@@ -59,7 +64,7 @@ EOT;
         return $dir;
     }
 
-    public static function tearDownAfterClass()
+    public static function _tearDownAfterClass()
     {
         putenv(ConfigurationProvider::ENV_MAX_ATTEMPTS . '=' .
             self::$originalEnv['max_attempts']);
@@ -67,6 +72,8 @@ EOT;
             self::$originalEnv['mode']);
         putenv(ConfigurationProvider::ENV_PROFILE . '=' .
             self::$originalEnv['profile']);
+        putenv(ConfigurationProvider::ENV_CONFIG_FILE . '=' .
+            self::$originalEnv['config_file']);
         putenv('HOME=' . self::$originalEnv['home']);
     }
 
@@ -176,21 +183,17 @@ EOT;
         unlink($dir . '/config');
     }
 
-    /**
-     * @expectedException \Aws\Retry\Exception\ConfigurationException
-     */
     public function testEnsuresIniFileExists()
     {
+        $this->expectException(\Aws\Retry\Exception\ConfigurationException::class);
         $this->clearEnv();
         putenv('HOME=/does/not/exist');
         call_user_func(ConfigurationProvider::ini())->wait();
     }
 
-    /**
-     * @expectedException \Aws\Retry\Exception\ConfigurationException
-     */
     public function testEnsuresProfileIsNotEmpty()
     {
+        $this->expectException(\Aws\Retry\Exception\ConfigurationException::class);
         $dir = $this->clearEnv();
         $ini = "[custom]";
         file_put_contents($dir . '/config', $ini);
@@ -204,12 +207,10 @@ EOT;
         }
     }
 
-    /**
-     * @expectedException \Aws\Retry\Exception\ConfigurationException
-     * @expectedExceptionMessage 'foo' not found in
-     */
     public function testEnsuresFileIsNotEmpty()
     {
+        $this->expectExceptionMessage("'foo' not found in");
+        $this->expectException(\Aws\Retry\Exception\ConfigurationException::class);
         $dir = $this->clearEnv();
         file_put_contents($dir . '/config', '');
         putenv('HOME=' . dirname($dir));
@@ -222,12 +223,10 @@ EOT;
         }
     }
 
-    /**
-     * @expectedException \Aws\Retry\Exception\ConfigurationException
-     * @expectedExceptionMessage Invalid config file:
-     */
     public function testEnsuresIniFileIsValid()
     {
+        $this->expectExceptionMessage("Invalid config file:");
+        $this->expectException(\Aws\Retry\Exception\ConfigurationException::class);
         $dir = $this->clearEnv();
         file_put_contents($dir . '/config', "wef \n=\nwef");
         putenv('HOME=' . dirname($dir));
@@ -297,11 +296,9 @@ EOT;
         unlink($dir . '/config');
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testChainThrowsExceptionOnEmptyArgs()
     {
+        $this->expectException(\InvalidArgumentException::class);
         ConfigurationProvider::chain();
     }
 
@@ -419,12 +416,10 @@ EOT;
         );
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Not a valid retry configuration argument
-     */
     public function testThrowsForInvalidUnwrapArgument()
     {
+        $this->expectExceptionMessage("Not a valid retry configuration argument");
+        $this->expectException(\InvalidArgumentException::class);
         ConfigurationProvider::unwrap('some_string');
     }
 }

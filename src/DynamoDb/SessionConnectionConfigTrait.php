@@ -54,6 +54,7 @@ trait SessionConnectionConfigTrait
         {
             foreach ($config as $key => $value)
             {
+                // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctionParameters.ucwords_delimitersFound -- False positive: Even though $seperators-argument of ucwords() does not exist in php 5.5, the code is still valid and tested using a unit test
                 $method = 'set' . str_replace('_', '', ucwords($key, '_'));
                 if(method_exists($this,$method))
                 {

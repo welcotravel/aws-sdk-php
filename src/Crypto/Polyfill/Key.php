@@ -47,12 +47,14 @@ class Key
     public function __destruct()
     {
         if (extension_loaded('sodium') && function_exists('sodium_memzero')) {
+            // phpcs:disable PHPCompatibility.FunctionUse.NewFunctions.sodium_memzeroFound,PHPCompatibility.Classes.NewClasses.sodiumexceptionFound -- False positive: Methods are only used after a test that they exist
             try {
                 \sodium_memzero($this->internalString);
             } catch (\SodiumException $ex) {
                 // This is a best effort, but does not provide the same guarantees as sodium_memzero():
                 $this->internalString ^= $this->internalString;
             }
+            // phpcs:enable -- re-enable all checks
         }
     }
 
